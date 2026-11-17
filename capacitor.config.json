@@ -1,0 +1,6 @@
+{
+  "appId": "com.anas.ixorastudio",
+  "appName": "IXORA Studio",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}

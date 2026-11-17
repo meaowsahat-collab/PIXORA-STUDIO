@@ -1,0 +1,17 @@
+{
+  "name": "IXORA Studio",
+  "short_name": "IXORA",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0c111a",
+  "theme_color": "#10151f",
+  "description": "Offline manual photo editor and file toolkit",
+  "icons": [
+    {
+      "src": "assets/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
