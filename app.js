@@ -1,4 +1,5 @@
 'use strict';
+window.addEventListener('error',e=>{try{let b=document.getElementById('errBanner');if(!b){b=document.createElement('div');b.id='errBanner';b.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99;background:#b00020;color:#fff;font:12px monospace;padding:8px;white-space:pre-wrap';document.body.appendChild(b)}b.textContent='Error: '+e.message+' ('+String(e.filename||'').split('/').pop()+':'+e.lineno+')'}catch(_){}});
 /* PIXORA / IXORA Studio v2.1 — offline manual photo editor */
 const $=s=>document.querySelector(s),canvas=$('#canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});
 const MAX_EDGE=4096;
@@ -46,13 +47,14 @@ function canvasPos(e){let r=canvas.getBoundingClientRect();return{x:(e.clientX-r
 function ensureRestoreSource(){if(!restoreSource||restoreSource.width!==base.width||restoreSource.height!==base.height)restoreSource=cloneCanvas(base)}
 
 /* ---------- native (Android) save / share ---------- */
-const Cap=window.Capacitor,isNative=!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform());
-const FS=isNative?Cap.registerPlugin('Filesystem'):null,ShareP=isNative?Cap.registerPlugin('Share'):null;
+const Cap=window.Capacitor;let isNative=false;try{isNative=!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}catch(e){}
+function nativePlugin(n){try{if(Cap.Plugins&&Cap.Plugins[n])return Cap.Plugins[n];return Cap.registerPlugin(n)}catch(e){return null}}
 function blobToBase64(blob){return new Promise((res,rej)=>{let r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=()=>rej(r.error);r.readAsDataURL(blob)})}
 function addDownload(name,type){try{let arr=JSON.parse(localStorage.getItem('ixoraDownloads')||'[]');arr.unshift({name,type,date:new Date().toISOString()});localStorage.setItem('ixoraDownloads',JSON.stringify(arr.slice(0,100)))}catch(e){}}
 async function deliver(items){
   if(!items.length)return;
-  if(isNative){
+  const FS=isNative?nativePlugin('Filesystem'):null,ShareP=isNative?nativePlugin('Share'):null;
+  if(isNative&&FS&&ShareP){
     try{
       const uris=[];
       for(const it of items){const r=await FS.writeFile({path:'ixora/'+it.name,data:await blobToBase64(it.blob),directory:'CACHE',recursive:true});uris.push(r.uri)}
@@ -141,7 +143,7 @@ $('#fileInput').addEventListener('change',async e=>{
     canvas.hidden=false;$('.empty-state').hidden=true;originalRestore=cloneCanvas(base);$('#downloadBtn').disabled=false;$('#resetBtn').disabled=false;
     render();updateHistoryButtons();selectTool('adjustAll');
     toast(s<1?`Photo opened (scaled to ${w}×${h} for speed).`:'Photo opened locally.');
-    if(window.innerWidth<=1050)setTimeout(()=>$('.stage').scrollIntoView({behavior:'smooth',block:'start'}),50);
+    if(window.innerWidth<=1050&&$('.stage'))setTimeout(()=>$('.stage').scrollIntoView({behavior:'smooth',block:'start'}),50);
   }catch(err){toast(err.message)}
 });
 
@@ -156,7 +158,7 @@ function renderTools(){
 }
 function focusInspector(){if(window.innerWidth<=1050)setTimeout(()=>$('.inspector').scrollIntoView({behavior:'smooth',block:'start'}),30)}
 function syncStageHeight(){let s=$('.stage');if(s)document.documentElement.style.setProperty('--stage-h',s.offsetHeight+'px')}
-if(window.ResizeObserver)new ResizeObserver(syncStageHeight).observe($('.stage'));window.addEventListener('resize',syncStageHeight);
+if(window.ResizeObserver&&$('.stage'))new ResizeObserver(syncStageHeight).observe($('.stage'));window.addEventListener('resize',syncStageHeight);
 
 /* ---------- control builders ---------- */
 function control(label,id,type='number',value='',extra=''){return `<div class="control"><label for="${id}">${label}</label><input id="${id}" type="${type}" value="${value}" ${extra}></div>`}
