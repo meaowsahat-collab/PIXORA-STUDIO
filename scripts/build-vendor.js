@@ -11,7 +11,7 @@ fs.mkdirSync(path.join(outDir, 'bg-data'), { recursive: true });
 esbuild.buildSync({
   entryPoints: [nm('@imgly/background-removal/dist/index.mjs')],
   bundle: true, format: 'esm', platform: 'browser', minify: true, target: 'es2020',
-  outfile: path.join(outDir, 'bg-removal/index.mjs'),
+  outfile: path.join(outDir, 'bg-removal/index.js'),
   alias: { 'onnxruntime-web': nm('onnxruntime-web/dist/esm/ort.wasm.min.js') },
   external: ['fs', 'path', 'os', 'worker_threads', 'perf_hooks', 'child_process', 'crypto'],
   define: { 'process.env.NODE_ENV': '"production"' },
@@ -19,7 +19,7 @@ esbuild.buildSync({
 });
 const dataDist = nm('@imgly/background-removal-data/dist');
 const all = JSON.parse(fs.readFileSync(path.join(dataDist, 'resources.json'), 'utf8'));
-const keep = ['/models/medium', '/onnxruntime-web/ort-wasm-simd.wasm', '/onnxruntime-web/ort-wasm.wasm'];
+const keep = ['/models/medium', '/models/small', '/onnxruntime-web/ort-wasm-simd.wasm', '/onnxruntime-web/ort-wasm.wasm'];
 const res = {};
 for (const k of keep) {
   res[k] = all[k];

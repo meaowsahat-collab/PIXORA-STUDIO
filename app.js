@@ -1569,7 +1569,7 @@ function vectorizeTool() {
 async function loadAiBgModule() {
   if (aiBgMod) return aiBgMod;
   if (!aiBgPromise) {
-    aiBgPromise = import(new URL('vendor/bg-removal/index.mjs', document.baseURI).href);
+    aiBgPromise = import(new URL('vendor/bg-removal/index.js', document.baseURI).href);
   }
   aiBgMod = await aiBgPromise;
   return aiBgMod;
@@ -1587,15 +1587,22 @@ async function computeAiMask(onProgress) {
   sctx.drawImage(base, 0, 0, w, h);
   const inBlob = await blobOf(srcC, 'image/png', 1);
 
-  const outBlob = await mod.removeBackground(inBlob, {
-    model: 'medium',
-    publicPath: new URL('vendor/bg-data/', document.baseURI).href,
-    proxyToWorker: false,
-    output: { format: 'image/png', quality: 1 },
-    progress: (key, cur, tot) => {
-      if (onProgress && tot > 0) onProgress(key, cur, tot);
-    }
-  });
+  let outBlob, lastErr;
+  for (const model of ['medium', 'small']) {
+    try {
+      outBlob = await mod.removeBackground(inBlob, {
+        model,
+        publicPath: new URL('vendor/bg-data/', document.baseURI).href,
+        proxyToWorker: false,
+        output: { format: 'image/png', quality: 1 },
+        progress: (key, cur, tot) => {
+          if (onProgress && tot > 0) onProgress(key, cur, tot);
+        }
+      });
+      break;
+    } catch (err) { lastErr = err; }
+  }
+  if (!outBlob) throw lastErr || new Error('AI model failed');
   const outImg = await loadImage(outBlob);
   const resC = newCanvas(w, h), rctx = resC.getContext('2d', { willReadFrequently: true });
   rctx.drawImage(outImg, 0, 0, w, h);
@@ -1728,6 +1735,8 @@ function autoBgTool() {
         }
       } catch (e) {
         if (!alive || activeTool !== 'autoBg') return;
+        aiBgPromise = null; aiBgMod = null;
+        const why = String((e && (e.message || e)) || 'unknown').slice(0, 160);
         engine = 'color';
         document.querySelectorAll('#bgEngRow button').forEach(x => x.classList.toggle('active', x.dataset.e === 'color'));
         $('#colorModeCtrls').hidden = false;
@@ -1736,7 +1745,7 @@ function autoBgTool() {
         overlay = drawGuideOverlay;
         render();
         $('#toolStatus').textContent = 'OFFLINE FALLBACK';
-        if ($('#bgNote')) $('#bgNote').textContent = 'Offline fallback active (AI model unavailable). Use Protect/Erase brushes.';
+        if ($('#bgNote')) $('#bgNote').textContent = 'AI model could not start: ' + why + ' — Color mode is active instead.';
       }
     }, 60);
   };
