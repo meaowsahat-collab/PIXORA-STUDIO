@@ -1569,7 +1569,7 @@ function vectorizeTool() {
 async function loadAiBgModule() {
   if (aiBgMod) return aiBgMod;
   if (!aiBgPromise) {
-    aiBgPromise = import('/vendor/bg-removal/index.mjs').catch(() => import('https://esm.sh/@imgly/background-removal@1.7.0'));
+    aiBgPromise = import(new URL('vendor/bg-removal/index.mjs', document.baseURI).href);
   }
   aiBgMod = await aiBgPromise;
   return aiBgMod;
@@ -1588,7 +1588,8 @@ async function computeAiMask(onProgress) {
   const inBlob = await blobOf(srcC, 'image/png', 1);
 
   const outBlob = await mod.removeBackground(inBlob, {
-    model: 'isnet_quint8',
+    model: 'small',
+    publicPath: new URL('vendor/bg-data/', document.baseURI).href,
     proxyToWorker: false,
     output: { format: 'image/png', quality: 1 },
     progress: (key, cur, tot) => {
@@ -1702,7 +1703,7 @@ function autoBgTool() {
         if (engine === 'ai') {
           if (!aiMaskCache || aiMaskCache.ref !== base) {
             $('#toolStatus').textContent = 'AI WORKING';
-            if (note) note.textContent = 'Running AI Subject Cutout (downloads ~40MB model on first use)…';
+            if (note) note.textContent = 'Running AI Subject Cutout (offline model)…';
             await computeAiMask((key, cur, tot) => {
               if (!alive || activeTool !== 'autoBg') return;
               const pct = Math.min(100, Math.round((cur / tot) * 100));

@@ -8,4 +8,6 @@ for (const file of ['index.html', 'styles.css', 'app.js', 'manifest.webmanifest'
   fs.copyFileSync(path.join(root, file), path.join(target, file));
 }
 fs.cpSync(path.join(root, 'assets'), path.join(target, 'assets'), { recursive: true });
+process.argv[2] = path.join(target, 'vendor');
+require('./build-vendor.js');
 console.log('Prepared offline Android web assets in www/.');
