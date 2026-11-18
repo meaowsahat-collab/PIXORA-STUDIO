@@ -1,6 +1,6 @@
 {
   "name": "ixora-studio",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "private": true,
   "description": "IXORA Studio offline manual photo editor and file toolkit",
   "scripts": {

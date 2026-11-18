@@ -21,9 +21,10 @@ const dataDist = nm('@imgly/background-removal-data/dist');
 const all = JSON.parse(fs.readFileSync(path.join(dataDist, 'resources.json'), 'utf8'));
 const keep = ['/models/medium', '/models/small', '/onnxruntime-web/ort-wasm-simd.wasm', '/onnxruntime-web/ort-wasm.wasm'];
 const res = {};
+// Chunk files get a .bin extension: Android's Capacitor server answers extension-less URLs with index.html.
 for (const k of keep) {
-  res[k] = all[k];
-  for (const c of all[k].chunks) fs.copyFileSync(path.join(dataDist, c.hash), path.join(outDir, 'bg-data', c.hash));
+  res[k] = { ...all[k], chunks: all[k].chunks.map(c => ({ ...c, hash: c.hash + '.bin' })) };
+  for (const c of all[k].chunks) fs.copyFileSync(path.join(dataDist, c.hash), path.join(outDir, 'bg-data', c.hash + '.bin'));
 }
 fs.writeFileSync(path.join(outDir, 'bg-data/resources.json'), JSON.stringify(res));
 const mb = fs.readdirSync(path.join(outDir, 'bg-data')).reduce((s, f) => s + fs.statSync(path.join(outDir, 'bg-data', f)).size, 0) / 1048576;
