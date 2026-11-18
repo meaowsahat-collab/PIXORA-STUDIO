@@ -19,7 +19,7 @@ esbuild.buildSync({
 });
 const dataDist = nm('@imgly/background-removal-data/dist');
 const all = JSON.parse(fs.readFileSync(path.join(dataDist, 'resources.json'), 'utf8'));
-const keep = ['/models/small', '/onnxruntime-web/ort-wasm-simd.wasm', '/onnxruntime-web/ort-wasm.wasm'];
+const keep = ['/models/medium', '/onnxruntime-web/ort-wasm-simd.wasm', '/onnxruntime-web/ort-wasm.wasm'];
 const res = {};
 for (const k of keep) {
   res[k] = all[k];

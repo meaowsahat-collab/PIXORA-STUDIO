@@ -1588,7 +1588,7 @@ async function computeAiMask(onProgress) {
   const inBlob = await blobOf(srcC, 'image/png', 1);
 
   const outBlob = await mod.removeBackground(inBlob, {
-    model: 'small',
+    model: 'medium',
     publicPath: new URL('vendor/bg-data/', document.baseURI).href,
     proxyToWorker: false,
     output: { format: 'image/png', quality: 1 },
